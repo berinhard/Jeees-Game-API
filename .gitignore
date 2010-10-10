@@ -1,4 +1,6 @@
+*.db
 bin
 lib
 include
 share
+*.pyc
