@@ -1,0 +1,31 @@
+=== Definição dos métodos da API do Jeees ===
+
+1) Listar equipes do mercado (GET)
+    response:
+        lista de equipes com:
+            identificador???
+            nome
+            preço
+            rendimento de desenvolvimento
+            rendimento com testes
+            salário
+            jogador a quem pertence + chance de compra --> só depois que estivermos criando jogos
+            preço de compra
+
+2) Comprar equipe (POST):
+    request content:
+        token do jogador
+        identificador da equipe que ele quer comprar
+    reponse:
+        Caso de sucesso:
+            dados da equipe
+        Caso de falha:
+            1 - Dinheiro insuficiente
+            2 - Já comprou equipe no turno
+            3 - Falha na tentativa de comprar equipe de outro jogador
+
+3) Obter um evento (GET):
+    * gerar o efeito no banco de dados
+    response:
+        descrição
+        título
