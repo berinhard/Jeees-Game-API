@@ -12,4 +12,4 @@ class Player(models.Model):
     user = models.OneToOneField(User)
     current_game = models.ForeignKey(Game)
     timestamp = models.DateTimeField(auto_now_add=True)
-    uuid = models.CharField(max_lengh=32)
+    uuid = models.CharField(max_length=32)
