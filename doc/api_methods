@@ -1,5 +1,33 @@
 === Definição dos métodos da API do Jeees ===
 
+Criação do Jogo
+    * Assumimos que os usuários já estarão sido criados na mão
+
+1) Criar novo jogo (POST):
+    request:
+        login
+        password
+    response:
+        id do jogo
+        id do jogador no jogo
+
+2) Entrar em um jogo (POST):
+    request:
+        login
+        password
+        id do jogo
+    response:
+        id do jogador no jogo
+
+3) Finalizar um jogo (DELETE):
+    request:
+        id do jogador no jogo
+        id do jogo
+    response:
+        rc.DELETED
+
+Regras do Jogo
+
 1) Listar equipes do mercado (GET)
     response:
         lista de equipes com:
