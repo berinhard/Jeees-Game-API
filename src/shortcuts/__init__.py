@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from django.http import Http404
+from django.http import Http404, HttpResponseNotAllowed
 from django.core.urlresolvers import RegexURLPattern, get_callable
 
 def discover_view(view, prefix=''):
@@ -23,7 +23,7 @@ class ViewByMethod(object):
             return self.GET(request, *args, **kwargs)
         elif request.method == 'POST' and self.POST:
             return self.POST(request, *args, **kwargs)
-        return http.HttpResponseNotAllowed('')
+        return HttpResponseNotAllowed('')
 
 
 class RegexUrlPatternByMethod(RegexURLPattern):

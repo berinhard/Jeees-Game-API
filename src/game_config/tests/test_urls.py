@@ -7,9 +7,9 @@ __all__ = [
 
 class GameCreationURLTests(TestCase):
 
-    def test_post_return_status_code_200(self):
-        response = self.client.post(reverse('game_config:create_game'), {})
-        self.assertEquals(response.status_code, 200)
+    def test_post_does_not_return_405(self):
+        response = self.client.post(reverse('game_config:create_game'))
+        self.assertNotEquals(response.status_code, 405)
 
     def test_get_return_status_code_405(self):
         response = self.client.get(reverse('game_config:create_game'))
