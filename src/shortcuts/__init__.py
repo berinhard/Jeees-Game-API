@@ -23,7 +23,7 @@ class ViewByMethod(object):
             return self.GET(request, *args, **kwargs)
         elif request.method == 'POST' and self.POST:
             return self.POST(request, *args, **kwargs)
-        raise Http404
+        return http.HttpResponseNotAllowed('')
 
 
 class RegexUrlPatternByMethod(RegexURLPattern):
