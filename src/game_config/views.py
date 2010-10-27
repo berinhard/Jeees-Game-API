@@ -1,8 +1,11 @@
 import json
+import random
 
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.contrib.auth import authenticate
+
+from game_config.models import Player, Game
 
 def create_game(request):
     post_data = {}
@@ -20,5 +23,12 @@ def create_game(request):
     if not user:
         response.status_code = 401
         return response
+
+    if not Player.objects.filter(user=user):
+        game_name = post_data.get('game_name', str(random.randint(0, 1000)))
+        game = Game.objects.create(name=game_name)
+        player = Player.objects.create(user=user, current_game=game)
+    else:
+        response = HttpResponseForbidden()
 
     return response
