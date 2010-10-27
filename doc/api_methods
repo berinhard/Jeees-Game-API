@@ -8,6 +8,8 @@ Criação do Jogo
         login
         password
     response:
+        urls de ações:
+            finalizar o jogo
         id do jogo
         id do jogador no jogo
 
