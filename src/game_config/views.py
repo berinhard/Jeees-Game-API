@@ -6,21 +6,18 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbid
 from django.contrib.auth import authenticate
 
 from game_config.models import Player, Game
+from utils.decorators import unpack_data
 
+@unpack_data
 @never_cache
 def create_game(request):
-    post_data = {}
-    try:
-        #WTF!!!!
-        post_data = json.loads(request.raw_post_data.replace("'", '"'))
-        if not 'username' in post_data or not 'password' in post_data:
-            raise ValueError
-    except ValueError:
+    post_data = request.post_data
+    if not 'username' in post_data or not 'password' in post_data:
         return HttpResponseBadRequest()
 
-    response = HttpResponse()
     user = authenticate(username=post_data['username'], password=post_data['password'])
 
+    response = HttpResponse()
     if not user:
         response.status_code = 401
         return response
