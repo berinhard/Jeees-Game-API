@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import *
 
-from shortcuts import route
+from utils.shortcuts import route
 
 urlpatterns = patterns('game_config.views',
 
