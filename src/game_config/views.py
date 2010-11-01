@@ -38,7 +38,39 @@ def create_game(request):
 
     return HttpResponse(content)
 
+@never_cache
 def delete_game(request, uuid, admin_token):
     game = get_object_or_404(Game, uuid=uuid, admin_token=admin_token)
     game.delete()
+    return HttpResponse()
+
+@unpack_data
+@never_cache
+def join_game(request, uuid):
+    game = get_object_or_404(Game, uuid=uuid)
+
+    post_data = request.post_data
+    if not 'username' in post_data or not 'password' in post_data:
+        return HttpResponseBadRequest()
+
+    user = authenticate(username=post_data['username'], password=post_data['password'])
+
+    if Player.objects.filter(user=user):
+        return HttpResponseForbidden()
+
+    if not user:
+        response = HttpResponse()
+        response.status_code = 401
+        return response
+
+    Player.objects.create(user=user, current_game=game)
+    content = {
+        'game': game.to_dict(),
+    }
+    content = json.dumps(content)
+
+    return HttpResponse(content)
+
+@never_cache
+def game_info(request, uuid):
     return HttpResponse()
