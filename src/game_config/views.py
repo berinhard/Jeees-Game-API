@@ -22,11 +22,11 @@ def create_game(request):
         response.status_code = 401
         return response
 
-    if not Player.objects.filter(user=user):
-        game_name = post_data.get('game_name', str(random.randint(0, 1000)))
-        game = Game.objects.create(name=game_name)
-        player = Player.objects.create(user=user, current_game=game)
-    else:
-        response = HttpResponseForbidden()
+    if Player.objects.filter(user=user):
+        return HttpResponseForbidden()
+
+    game_name = post_data.get('game_name', str(random.randint(0, 1000)))
+    game = Game.objects.create(name=game_name)
+    player = Player.objects.create(user=user, current_game=game)
 
     return response
