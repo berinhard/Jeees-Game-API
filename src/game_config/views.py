@@ -4,6 +4,7 @@ import random
 from django.views.decorators.cache import never_cache
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.contrib.auth import authenticate
+from django.shortcuts import get_object_or_404
 
 from game_config.models import Player, Game
 from utils.decorators import unpack_data
@@ -32,4 +33,6 @@ def create_game(request):
     return response
 
 def delete_game(request, uuid):
+    game = get_object_or_404(Game, uuid=uuid)
+    game.delete()
     return HttpResponse()

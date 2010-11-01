@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 from game_config.models import Game, Player
 
 __all__ = [
-    'GameCreationTests'
+    'GameCreationTests',
+    'GameDeletionTests',
 ]
 
 class GameCreationTests(TestCase):
@@ -74,3 +75,24 @@ class GameCreationTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(Game.objects.count(), 1)
         self.assertEqual(Player.objects.count(), 1)
+
+
+class GameDeletionTests(TestCase):
+
+    def setUp(self):
+        game = Game.objects.create(name='test')
+        self.game_uuid = game.uuid
+
+    def test_return_404_if_game_doesnt_exist(self):
+        response = self.client.delete(
+            reverse('game_config:delete_game', kwargs={'uuid':'1234'})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_game_if_it_exist(self):
+        self.assertTrue(Game.objects.all())
+        response = self.client.delete(
+            reverse('game_config:delete_game', kwargs={'uuid':self.game_uuid})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Game.objects.all())
