@@ -32,7 +32,7 @@ def create_game(request):
 
     return response
 
-def delete_game(request, uuid):
-    game = get_object_or_404(Game, uuid=uuid)
+def delete_game(request, uuid, admin_token):
+    game = get_object_or_404(Game, uuid=uuid, admin_token=admin_token)
     game.delete()
     return HttpResponse()

@@ -27,21 +27,25 @@ class GameDeletionURLTests(TestCase):
     def setUp(self):
         game = Game.objects.create(name='test')
         self.game_uuid = game.uuid
+        self.game_admin_token = game.admin_token
 
     def test_delete_does_not_return_405(self):
-        response = self.client.delete(
-            reverse('game_config:delete_game', kwargs={'uuid':self.game_uuid})
-        )
+        response = self.client.delete(reverse(
+            'game_config:delete_game',
+            kwargs={'uuid':self.game_uuid, 'admin_token':self.game_admin_token}
+        ))
         self.assertNotEquals(response.status_code, 405)
 
     def test_get_returns_405(self):
-        response = self.client.get(
-            reverse('game_config:delete_game', kwargs={'uuid':self.game_uuid})
-        )
+        response = self.client.get(reverse(
+            'game_config:delete_game',
+            kwargs={'uuid':self.game_uuid, 'admin_token':self.game_admin_token}
+        ))
         self.assertEqual(response.status_code, 405)
 
     def test_post_returns_405(self):
-        response = self.client.post(
-            reverse('game_config:delete_game', kwargs={'uuid':self.game_uuid})
-        )
+        response = self.client.post(reverse(
+            'game_config:delete_game',
+            kwargs={'uuid':self.game_uuid, 'admin_token':self.game_admin_token}
+        ))
         self.assertEqual(response.status_code, 405)
