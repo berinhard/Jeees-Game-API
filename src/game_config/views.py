@@ -30,3 +30,6 @@ def create_game(request):
     player = Player.objects.create(user=user, current_game=game)
 
     return response
+
+def delete_game(request, uuid):
+    return HttpResponse()

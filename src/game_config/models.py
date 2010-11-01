@@ -11,7 +11,7 @@ class Game(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.uuid:
-            self.uuid = str(uuid.uuid4)
+            self.uuid = str(uuid.uuid4())
         super(Game, self).save(*args, **kwargs)
 
 
@@ -24,5 +24,5 @@ class Player(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.uuid:
-            self.uuid = str(uuid.uuid4)
+            self.uuid = str(uuid.uuid4())
         super(Player, self).save(*args, **kwargs)
