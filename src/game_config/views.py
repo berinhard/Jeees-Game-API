@@ -18,8 +18,8 @@ def create_game(request):
 
     user = authenticate(username=post_data['username'], password=post_data['password'])
 
-    response = HttpResponse()
     if not user:
+        response = HttpResponse()
         response.status_code = 401
         return response
 
@@ -30,7 +30,13 @@ def create_game(request):
     game = Game.objects.create(name=game_name)
     player = Player.objects.create(user=user, current_game=game)
 
-    return response
+    content = {
+        'game': game.to_dict(),
+        'delete_uri':'/%s/%s/' % (game.uuid, game.admin_token)
+    }
+    content = json.dumps(content)
+
+    return HttpResponse(content)
 
 def delete_game(request, uuid, admin_token):
     game = get_object_or_404(Game, uuid=uuid, admin_token=admin_token)

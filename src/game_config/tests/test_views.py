@@ -1,3 +1,5 @@
+import json
+
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
@@ -75,6 +77,18 @@ class GameCreationTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(Game.objects.count(), 1)
         self.assertEqual(Player.objects.count(), 1)
+
+    def test_succefull_response_returns_correct_content(self):
+        response = self.client.post(
+            reverse('game_config:create_game'),
+            {"username":self.username, "password":self.password, "game_name":"name"},
+            content_type='application/json'
+        )
+        content = json.loads(response.content)
+
+        self.assertTrue('game' in content)
+        self.assertTrue(content['game'])
+        self.assertTrue('delete_uri' in content)
 
 
 class GameDeletionTests(TestCase):

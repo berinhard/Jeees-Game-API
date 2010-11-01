@@ -19,6 +19,9 @@ class Game(models.Model):
             self.admin_token = md5(hashable_string).hexdigest()
         super(Game, self).save(*args, **kwargs)
 
+    def to_dict(self):
+        return {'name':self.name, 'uuid':self.uuid}
+
 
 class Player(models.Model):
 
