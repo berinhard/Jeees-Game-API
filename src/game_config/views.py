@@ -1,12 +1,13 @@
 import json
 import random
 
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.contrib.auth import authenticate
 
 from game_config.models import Player, Game
 
+@never_cache
 def create_game(request):
     post_data = {}
     try:
