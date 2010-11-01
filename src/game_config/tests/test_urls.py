@@ -14,3 +14,7 @@ class GameCreationURLTests(TestCase):
     def test_get_return_status_code_405(self):
         response = self.client.get(reverse('game_config:create_game'))
         self.assertEquals(response.status_code, 405)
+
+    def test_delete_return_status_code_405(self):
+        response = self.client.delete(reverse('game_config:create_game'))
+        self.assertEquals(response.status_code, 405)
