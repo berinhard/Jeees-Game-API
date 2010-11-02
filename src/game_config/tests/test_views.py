@@ -16,11 +16,10 @@ __all__ = [
 class GameCreationTests(TestCase):
 
     def setUp(self):
-        self.username = 'username'
         self.password = 'password'
-        self.user = User(username = self.username)
-        self.user.set_password(self.password)
-        self.user.save()
+        self.user = User.objects.create_user(
+            username='username', email='a@a.com', password=self.password
+        )
 
     def test_return_bad_request_if_missing_login_or_password_on_post(self):
         response = self.client.post(
@@ -44,7 +43,7 @@ class GameCreationTests(TestCase):
 
         response = self.client.post(
             reverse('game_config:create_game'),
-            {"username":self.username, "password":self.password, "game_name":"name"},
+            {"username":self.user.username, "password":self.password, "game_name":"name"},
             content_type='application/json'
         )
 
@@ -58,7 +57,7 @@ class GameCreationTests(TestCase):
 
         response = self.client.post(
             reverse('game_config:create_game'),
-            {"username":self.username, "password":self.password},
+            {"username":self.user.username, "password":self.password},
             content_type='application/json'
         )
 
@@ -72,7 +71,7 @@ class GameCreationTests(TestCase):
 
         response = self.client.post(
             reverse('game_config:create_game'),
-            {"username":self.username, "password":self.password},
+            {"username":self.user.username, "password":self.password},
             content_type='application/json'
         )
 
@@ -83,7 +82,7 @@ class GameCreationTests(TestCase):
     def test_succefull_response_returns_correct_content(self):
         response = self.client.post(
             reverse('game_config:create_game'),
-            {"username":self.username, "password":self.password, "game_name":"name"},
+            {"username":self.user.username, "password":self.password, "game_name":"name"},
             content_type='application/json'
         )
         content = json.loads(response.content)
@@ -129,9 +128,7 @@ class JoinGameTests(TestCase):
     def setUp(self):
         self.password = '123456'
         self.user = User.objects.create_user(
-            username='name',
-            email='a@a.com',
-            password=self.password
+            username='name', email='a@a.com', password=self.password
         )
 
         self.game = Game.objects.create(name='teste')
