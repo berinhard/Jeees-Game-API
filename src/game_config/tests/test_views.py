@@ -10,7 +10,7 @@ __all__ = [
     'GameCreationTests',
     'GameDeletionTests',
     'JoinGameTests',
-
+    'GetGameInfoTests',
 ]
 
 class GameCreationTests(TestCase):
@@ -188,3 +188,35 @@ class JoinGameTests(TestCase):
         self.assertTrue(Player.objects.all())
         self.assertTrue('game' in content)
         self.assertTrue(content['game'])
+
+
+class GetGameInfoTests(TestCase):
+
+    def setUp(self):
+        user = User.objects.create_user(
+            username='name',
+            email='a@a.com',
+            password='123456',
+        )
+        self.game = Game.objects.create(name='teste')
+        Player.objects.create(user=user, current_game=self.game)
+
+    def test_returns_404_if_game_doesnt_exist(self):
+        response = self.client.get(
+            reverse('game_config:game_info', kwargs={'uuid':'wrong'})
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_return_game_info_for_existent_game(self):
+        response = self.client.get(
+            reverse('game_config:game_info', kwargs={'uuid':self.game.uuid})
+        )
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(content['game'])
+        self.assertTrue(isinstance(content['players'], list))
+        self.assertTrue(content['players'])
+        self.assertTrue(content['players'][0]['uuid'])
+        self.assertTrue(content['players'][0]['username'])

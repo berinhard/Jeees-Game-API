@@ -73,4 +73,16 @@ def join_game(request, uuid):
 
 @never_cache
 def game_info(request, uuid):
-    return HttpResponse()
+    game = get_object_or_404(Game, uuid=uuid)
+    players = [
+        {'uuid':player.uuid, 'username':player.user.username}
+        for player in Player.objects.filter(current_game=game)
+    ]
+
+    content = {
+        'game':game.to_dict(),
+        'players':players,
+    }
+    content = json.dumps(content)
+
+    return HttpResponse(content)
