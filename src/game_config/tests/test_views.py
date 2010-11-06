@@ -125,36 +125,32 @@ class GameDeletionTests(TestCase):
 class JoinGameTests(TestCase):
 
     def setUp(self):
-        self.password = '123456'
+        self.username = 'username'
+        self.password = 'password'
         self.user = User.objects.create_user(
-            username='name', email='a@a.com', password=self.password
+            username=self.username, email='a@a.com', password=self.password
         )
 
         self.game = Game.objects.create(name='teste')
 
-    def test_return_bad_request_if_missing_login_or_password_on_post(self):
-        response = self.client.post(
-            reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
-            {"username":"user"},
-            content_type='application/json'
-        )
-
-        self.assertEqual(response.status_code, 400)
-
     def test_return_unauthorized_with_wrong_credentials(self):
+        http_authorization = build_http_auth_header(self.username, 'wrong')
         response = self.client.post(
             reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
-            {"username":"wrong", "password":'wrong'},
-            content_type='application/json'
+            {},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = http_authorization
         )
 
         self.assertEqual(response.status_code, 401)
 
     def test_returns_404_if_game_doesnt_exist(self):
+        http_authorization = build_http_auth_header(self.username, self.password)
         response = self.client.post(
             reverse('game_config:game_info', kwargs={'uuid':'not_exists'}),
-            {"username":self.user.username, "password":self.password},
-            content_type='application/json'
+            {},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = http_authorization
         )
 
         self.assertEqual(response.status_code, 404)
@@ -162,10 +158,12 @@ class JoinGameTests(TestCase):
     def test_returns_forbidden_in_case_user_is_already_in_a_game(self):
         player = Player.objects.create(user=self.user, current_game=self.game)
 
+        http_authorization = build_http_auth_header(self.username, self.password)
         response = self.client.post(
             reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
-            {"username":self.user.username, "password":self.password},
-            content_type='application/json'
+            {},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = http_authorization
         )
 
         self.assertEqual(response.status_code, 403)
@@ -173,10 +171,12 @@ class JoinGameTests(TestCase):
     def test_join_game_with_correct_credentials(self):
         self.assertFalse(Player.objects.all())
 
+        http_authorization = build_http_auth_header(self.username, self.password)
         response = self.client.post(
             reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
-            {"username":self.user.username, "password":self.password},
-            content_type='application/json'
+            {},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = http_authorization
         )
         content = json.loads(response.content)
 
