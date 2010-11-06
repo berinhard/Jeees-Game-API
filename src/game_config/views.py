@@ -32,7 +32,8 @@ def create_game(request):
 
     content = {
         'game': game.to_dict(),
-        'delete_uri':'/%s/' % game.uuid
+        'game_info_uri':'/game/%s/' % game.uuid,
+        'delete_game_uri':'/game/%s/' % game.uuid,
     }
     content = json.dumps(content)
 
@@ -65,6 +66,8 @@ def join_game(request, uuid):
     Player.objects.create(user=user, current_game=game)
     content = {
         'game': game.to_dict(),
+        'game_info_uri':'/game/%s/' % game.uuid,
+        'leave_game_uri':'/game/%s/' % game.uuid,
     }
     content = json.dumps(content)
 
@@ -81,7 +84,6 @@ def game_info(request, uuid):
     content = {
         'game':game.to_dict(),
         'players':players,
-        'leave_uri':'/%s/' % game.uuid
     }
     content = json.dumps(content)
 

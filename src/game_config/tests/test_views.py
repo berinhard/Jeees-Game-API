@@ -89,7 +89,8 @@ class GameCreationTests(TestCase):
         content = json.loads(response.content)
 
         self.assertTrue(content['game'])
-        self.assertTrue('delete_uri' in content)
+        self.assertTrue(content['delete_game_uri'])
+        self.assertTrue(content['game_info_uri'])
 
 
 class GameDeletionOrLeaveTests(TestCase):
@@ -229,8 +230,9 @@ class JoinGameTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Player.objects.all())
-        self.assertTrue('game' in content)
         self.assertTrue(content['game'])
+        self.assertTrue(content['leave_game_uri'])
+        self.assertTrue(content['game_info_uri'])
 
 
 class GetGameInfoTests(TestCase):
