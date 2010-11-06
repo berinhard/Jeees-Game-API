@@ -10,6 +10,7 @@ class Game(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     uuid = models.CharField(max_length=36)
     admin_token = models.CharField(max_length=32)
+    creator = models.OneToOneField(User)
 
     def save(self, *args, **kwargs):
         if not self.uuid:

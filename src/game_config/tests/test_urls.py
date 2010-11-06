@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 from game_config.models import Game
 
@@ -26,7 +27,7 @@ class GameCreationURLTests(TestCase):
 class GameDeletionURLTests(TestCase):
 
     def setUp(self):
-        game = Game.objects.create(name='test')
+        game = Game.objects.create(name='test', creator=User.objects.create())
         self.game_uuid = game.uuid
         self.game_admin_token = game.admin_token
 
@@ -54,7 +55,7 @@ class GameDeletionURLTests(TestCase):
 class GameInfoURLTests(TestCase):
 
     def setUp(self):
-        game = Game.objects.create(name='test')
+        game = Game.objects.create(name='test', creator=User.objects.create())
         self.game_uuid = game.uuid
 
     def test_post_does_not_return_405(self):

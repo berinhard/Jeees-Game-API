@@ -48,6 +48,8 @@ class GameCreationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Game.objects.all())
         self.assertTrue(Player.objects.all())
+        game = Game.objects.all()[0]
+        self.assertTrue(game.creator, self.user)
 
     def test_bad_request_with_corret_credentials_and_without_game_info(self):
         http_authorization = build_http_auth_header(self.username, self.password)
@@ -61,7 +63,7 @@ class GameCreationTests(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_return_forbiden_in_case_user_is_already_in_a_game(self):
-        game = Game.objects.create(name='test')
+        game = Game.objects.create(name='test', creator=User.objects.create())
         player = Player.objects.create(user=self.user, current_game=game)
 
         http_authorization = build_http_auth_header(self.username, self.password)
@@ -86,7 +88,6 @@ class GameCreationTests(TestCase):
         )
         content = json.loads(response.content)
 
-        self.assertTrue('game' in content)
         self.assertTrue(content['game'])
         self.assertTrue('delete_uri' in content)
 
@@ -94,7 +95,8 @@ class GameCreationTests(TestCase):
 class GameDeletionTests(TestCase):
 
     def setUp(self):
-        game = Game.objects.create(name='test')
+        user = User.objects.create()
+        game = Game.objects.create(name='test', creator=user)
         self.game_uuid = game.uuid
         self.game_admin_token = game.admin_token
 
@@ -131,7 +133,7 @@ class JoinGameTests(TestCase):
             username=self.username, email='a@a.com', password=self.password
         )
 
-        self.game = Game.objects.create(name='teste')
+        self.game = Game.objects.create(name='teste', creator=self.user)
 
     def test_return_unauthorized_with_wrong_credentials(self):
         http_authorization = build_http_auth_header(self.username, 'wrong')
@@ -194,7 +196,7 @@ class GetGameInfoTests(TestCase):
             email='a@a.com',
             password='123456',
         )
-        self.game = Game.objects.create(name='teste')
+        self.game = Game.objects.create(name='teste', creator=user)
         Player.objects.create(user=user, current_game=self.game)
 
     def test_returns_404_if_game_doesnt_exist(self):

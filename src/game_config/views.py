@@ -22,7 +22,7 @@ def create_game(request):
     if Player.objects.filter(user=user):
         return HttpResponseForbidden()
 
-    game = Game.objects.create(name=post_data['game_name'])
+    game = Game.objects.create(name=post_data['game_name'], creator=user)
     player = Player.objects.create(user=user, current_game=game)
 
     content = {
