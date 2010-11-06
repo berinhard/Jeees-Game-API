@@ -98,4 +98,6 @@ INSTALLED_APPS = (
     'game_config',
 )
 
+AUTH_PROFILE_MODULE = 'game_config.Player'
+
 JEEES_REALM = 'jeees_game_api'

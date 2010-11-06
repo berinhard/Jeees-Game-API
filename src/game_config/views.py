@@ -5,6 +5,7 @@ from django.views.decorators.cache import never_cache
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 
 from game_config.models import Player, Game
 from game_config.decorators import user_auth
@@ -19,8 +20,11 @@ def create_game(request):
         return HttpResponseBadRequest()
 
     user = request.user
-    if Player.objects.filter(user=user):
+    try:
+        user.get_profile()
         return HttpResponseForbidden()
+    except ObjectDoesNotExist:
+        pass
 
     game = Game.objects.create(name=post_data['game_name'], creator=user)
     player = Player.objects.create(user=user, current_game=game)
@@ -45,8 +49,11 @@ def join_game(request, uuid):
     game = get_object_or_404(Game, uuid=uuid)
 
     user = request.user
-    if Player.objects.filter(user=user):
+    try:
+        user.get_profile()
         return HttpResponseForbidden()
+    except ObjectDoesNotExist:
+        pass
 
     Player.objects.create(user=user, current_game=game)
     content = {
