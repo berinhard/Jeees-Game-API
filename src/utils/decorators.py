@@ -9,7 +9,7 @@ def unpack_data(view):
         try:
             post_data = json.loads(request.raw_post_data.replace("'", '"'))
         except ValueError:
-            return HttpResponseBadRequest('Invalid Json')
+            return HttpResponseBadRequest('json mal formatado')
 
         request.post_data = post_data
         return view(request, *args, **kwargs)

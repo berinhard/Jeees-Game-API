@@ -17,7 +17,7 @@ def user_auth(view):
             request.user = user
             response = view(request, *args, **kwargs)
         else:
-            response = HttpResponse(status=401)
+            response = HttpResponse('username e senha incorretos', status=401)
             response['WWW-Authenticate'] = 'Basic realm="%s"' % settings.JEEES_REALM
 
         return response

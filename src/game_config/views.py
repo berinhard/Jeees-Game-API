@@ -1,3 +1,4 @@
+# -*- encoding:utf-8 -*-
 import json
 import random
 
@@ -17,12 +18,12 @@ from utils.decorators import unpack_data
 def create_game(request):
     post_data = request.post_data
     if not 'game_name' in post_data:
-        return HttpResponseBadRequest()
+        return HttpResponseBadRequest(u'o campo game_name é obrigatóri')
 
     user = request.user
     try:
         user.get_profile()
-        return HttpResponseForbidden()
+        return HttpResponseForbidden(u'esse usuário já está em um jogo')
     except ObjectDoesNotExist:
         pass
 
@@ -47,7 +48,7 @@ def leave_or_delete_game(request, uuid):
     else:
         player = get_object_or_404(Player, user=user, current_game=game)
         player.delete()
-    return HttpResponse()
+    return HttpResponse('OK')
 
 @user_auth
 @never_cache
@@ -57,7 +58,7 @@ def join_game(request, uuid):
     user = request.user
     try:
         user.get_profile()
-        return HttpResponseForbidden()
+        return HttpResponseForbidden('o usuário já está em um jogo')
     except ObjectDoesNotExist:
         pass
 
