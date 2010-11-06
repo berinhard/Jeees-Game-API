@@ -95,33 +95,52 @@ class GameCreationTests(TestCase):
 class GameDeletionTests(TestCase):
 
     def setUp(self):
-        user = User.objects.create()
-        game = Game.objects.create(name='test', creator=user)
-        self.game_uuid = game.uuid
-        self.game_admin_token = game.admin_token
+        self.username = 'username'
+        self.password = 'password'
+        user = User.objects.create_user(
+            username=self.username, email='a@a.com', password=self.password
+        )
+        self.game = Game.objects.create(name='test', creator=user)
 
     def test_return_404_if_game_doesnt_exist(self):
-        response = self.client.delete(reverse(
-            'game_config:delete_game',
-            kwargs={'uuid':'1234', 'admin_token':self.game_admin_token}
-        ))
+        http_authorization = build_http_auth_header(self.username, self.password)
+        response = self.client.delete(
+            reverse('game_config:game_info', kwargs={'uuid':'1234'}),
+            HTTP_AUTHORIZATION = http_authorization
+        )
         self.assertEqual(response.status_code, 404)
 
-    def test_return_404_with_incorrect_admin_token(self):
-        response = self.client.delete(reverse(
-            'game_config:delete_game',
-            kwargs={'uuid':self.game_uuid, 'admin_token':'12345'}
-        ))
-        self.assertEqual(response.status_code, 404)
+    def test_return_401_with_incorrect_login(self):
+        http_authorization = build_http_auth_header(self.username, 'wrong')
+        response = self.client.delete(
+            reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
+            HTTP_AUTHORIZATION = http_authorization
+        )
+        self.assertEqual(response.status_code, 401)
 
-    def test_delete_game_if_it_exist_and_correct_admin_token_is_given(self):
+    def test_delete_game_if_it_exist_and_is_creator_login(self):
         self.assertTrue(Game.objects.all())
-        response = self.client.delete(reverse(
-            'game_config:delete_game',
-            kwargs={'uuid':self.game_uuid, 'admin_token':self.game_admin_token})
+
+        http_authorization = build_http_auth_header(self.username, self.password)
+        response = self.client.delete(
+            reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
+            HTTP_AUTHORIZATION = http_authorization
         )
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Game.objects.all())
+
+    def test_404_and_do_not_delete_game_if_it_exist_but_is_not_the_creator_login(self):
+        self.assertTrue(Game.objects.all())
+        user = User.objects.create_user(
+            username='user', email='a@a.com', password='password'
+        )
+        http_authorization = build_http_auth_header('user', 'password')
+        response = self.client.delete(
+            reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
+            HTTP_AUTHORIZATION = http_authorization
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Game.objects.all())
 
 
 class JoinGameTests(TestCase):

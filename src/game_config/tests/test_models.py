@@ -13,27 +13,22 @@ class GameModelTest(TestCase):
     def setUp(self):
         self.user = User.objects.create()
 
-    def test_creates_uuid_and_admin_token_on_save(self):
+    def test_creates_uuid(self):
         game = Game(name='test', creator=self.user)
         self.assertFalse(game.uuid)
-        self.assertFalse(game.admin_token)
         game.save()
         self.assertTrue(game.uuid)
-        self.assertTrue(game.admin_token)
 
-    def test_set_creates_uuid_and_admin_token_on_creation(self):
+    def test_set_creates_uuid_creation(self):
         game = Game.objects.create(name='test', creator=self.user)
         self.assertTrue(game.uuid)
-        self.assertTrue(game.admin_token)
 
-    def test_doesnt_overrides_uuid_and_admin_token_after_save(self):
+    def test_doesnt_overrides_uuid_after_save(self):
         game = Game.objects.create(name='test', creator=self.user)
         uuid = game.uuid
-        admin_token = game.admin_token
         game.name = 'second_name'
         game.save()
         self.assertEqual(uuid, game.uuid)
-        self.assertTrue(admin_token, game.admin_token)
 
 class PlayerModelTest(TestCase):
 

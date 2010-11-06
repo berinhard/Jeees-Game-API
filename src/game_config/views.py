@@ -31,15 +31,16 @@ def create_game(request):
 
     content = {
         'game': game.to_dict(),
-        'delete_uri':'/%s/%s/' % (game.uuid, game.admin_token)
+        'delete_uri':'/%s/' % game.uuid
     }
     content = json.dumps(content)
 
     return HttpResponse(content)
 
+@user_auth
 @never_cache
-def delete_game(request, uuid, admin_token):
-    game = get_object_or_404(Game, uuid=uuid, admin_token=admin_token)
+def delete_game(request, uuid):
+    game = get_object_or_404(Game, uuid=uuid, creator=request.user)
     game.delete()
     return HttpResponse()
 
