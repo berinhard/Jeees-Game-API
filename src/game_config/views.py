@@ -39,9 +39,14 @@ def create_game(request):
 
 @user_auth
 @never_cache
-def delete_game(request, uuid):
-    game = get_object_or_404(Game, uuid=uuid, creator=request.user)
-    game.delete()
+def leave_or_delete_game(request, uuid):
+    game = get_object_or_404(Game, uuid=uuid)
+    user = request.user
+    if game.creator == user:
+        game.delete()
+    else:
+        player = get_object_or_404(Player, user=user, current_game=game)
+        player.delete()
     return HttpResponse()
 
 @user_auth
@@ -75,6 +80,7 @@ def game_info(request, uuid):
     content = {
         'game':game.to_dict(),
         'players':players,
+        'leave_uri':'/%s/' % game.uuid
     }
     content = json.dumps(content)
 

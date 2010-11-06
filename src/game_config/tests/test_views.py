@@ -9,7 +9,7 @@ from utils.test_helpers import build_http_auth_header
 
 __all__ = [
     'GameCreationTests',
-    'GameDeletionTests',
+    'GameDeletionOrLeaveTests',
     'JoinGameTests',
     'GetGameInfoTests',
 ]
@@ -92,7 +92,7 @@ class GameCreationTests(TestCase):
         self.assertTrue('delete_uri' in content)
 
 
-class GameDeletionTests(TestCase):
+class GameDeletionOrLeaveTests(TestCase):
 
     def setUp(self):
         self.username = 'username'
@@ -129,18 +129,44 @@ class GameDeletionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Game.objects.all())
 
-    def test_404_and_do_not_delete_game_if_it_exist_but_is_not_the_creator_login(self):
-        self.assertTrue(Game.objects.all())
+    def test_leave_game_if_it_exist_and_player_login(self):
         user = User.objects.create_user(
             username='user', email='a@a.com', password='password'
         )
+        player = Player.objects.create(user=user, current_game=self.game)
+
+        self.assertTrue(Game.objects.all())
+        self.assertTrue(Player.objects.all())
+
         http_authorization = build_http_auth_header('user', 'password')
         response = self.client.delete(
             reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
             HTTP_AUTHORIZATION = http_authorization
         )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Game.objects.all())
+        self.assertFalse(Player.objects.all())
+
+    def test_404_player_does_not_belong_to_the_game(self):
+        user = User.objects.create_user(
+            username='user2', email='a@a.com', password='password2'
+        )
+        game = Game.objects.create(name='game_2', creator=user)
+        player = Player.objects.create(user=user, current_game=game)
+
+        self.assertTrue(Game.objects.all())
+        self.assertTrue(Player.objects.all())
+
+        http_authorization = build_http_auth_header('user2', 'password2')
+        response = self.client.delete(
+            reverse('game_config:game_info', kwargs={'uuid':self.game.uuid}),
+            HTTP_AUTHORIZATION = http_authorization
+        )
+
         self.assertEqual(response.status_code, 404)
         self.assertTrue(Game.objects.all())
+        self.assertTrue(Player.objects.all())
 
 
 class JoinGameTests(TestCase):
