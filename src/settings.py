@@ -97,3 +97,5 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'game_config',
 )
+
+JEEES_REALM = 'jeees_game_api'
