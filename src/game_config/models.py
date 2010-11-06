@@ -3,6 +3,7 @@ from hashlib import md5
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import pre_save
 
 class Game(models.Model):
 
@@ -11,13 +12,14 @@ class Game(models.Model):
     uuid = models.CharField(max_length=36)
     creator = models.OneToOneField(User)
 
-    def save(self, *args, **kwargs):
-        if not self.uuid:
-            self.uuid = str(uuid.uuid4())
-        super(Game, self).save(*args, **kwargs)
-
     def to_dict(self):
         return {'name':self.name, 'uuid':self.uuid}
+
+def __set_game_uuid_on_creation(sender, **kwargs):
+    game = kwargs['instance']
+    if not game.pk:
+        game.uuid = str(uuid.uuid4())
+pre_save.connect(__set_game_uuid_on_creation, sender=Game)
 
 
 class Player(models.Model):
