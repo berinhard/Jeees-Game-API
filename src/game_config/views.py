@@ -7,27 +7,22 @@ from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 
 from game_config.models import Player, Game
+from game_config.decorators import user_auth
 from utils.decorators import unpack_data
 
+@user_auth
 @unpack_data
 @never_cache
 def create_game(request):
     post_data = request.post_data
-    if not 'username' in post_data or not 'password' in post_data:
+    if not 'game_name' in post_data:
         return HttpResponseBadRequest()
 
-    user = authenticate(username=post_data['username'], password=post_data['password'])
-
-    if not user:
-        response = HttpResponse()
-        response.status_code = 401
-        return response
-
+    user = request.user
     if Player.objects.filter(user=user):
         return HttpResponseForbidden()
 
-    game_name = post_data.get('game_name', str(random.randint(0, 1000)))
-    game = Game.objects.create(name=game_name)
+    game = Game.objects.create(name=post_data['game_name'])
     player = Player.objects.create(user=user, current_game=game)
 
     content = {
