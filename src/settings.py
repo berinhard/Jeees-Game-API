@@ -96,6 +96,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.admin',
     'game_config',
+    'team_management',
 )
 
 AUTH_PROFILE_MODULE = 'game_config.Player'
