@@ -1,10 +1,10 @@
 # -*- encoding:utf-8 -*-
 import random
+import json
 
 from django.views.decorators.cache import never_cache
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist
 
 from game_config.decorators import user_auth
 from game_config.models import Game, Player
@@ -26,7 +26,19 @@ def get_new_project(request, game_uuid):
         proj for proj in Project.objects.all() if not proj in current_game_projects
     ]
 
-    player.project = random.choice(projects)
+    project = random.choice(projects)
+    player.project = project
     player.save()
 
-    return HttpResponse()
+    content = json.dumps({'project_info_uri':'/project/info/%s' % project.uuid})
+
+    return HttpResponse(content)
+
+@never_cache
+def get_info(request, proj_uuid):
+    project = get_object_or_404(Project, uuid=proj_uuid)
+    content = project.to_dict()
+    content.update({'releases':
+        [release.to_dict() for release in project.release_set.all()]
+    })
+    return HttpResponse(json.dumps(content))

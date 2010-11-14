@@ -1,3 +1,5 @@
+import json
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -6,6 +8,10 @@ from game_config.models import Game, Player
 from project_management.models import Project
 from utils.test_helpers import build_http_auth_header
 
+__all__ = [
+    'TestGetNewProject',
+    'TestGetProjectInfo',
+]
 
 class TestGetNewProject(TestCase):
 
@@ -77,9 +83,11 @@ class TestGetNewProject(TestCase):
             reverse('projects:get_project', kwargs={'game_uuid':self.game.uuid}),
             HTTP_AUTHORIZATION = self.http_authorization
         )
-        player = Player.objects.get(user=self.user)
+        content = json.loads(response.content)
 
+        player = Player.objects.get(user=self.user)
         self.assertTrue(player.project)
+        self.assertTrue(content['project_info_uri'])
 
     def test_return_403_player_already_have_a_project(self):
         player = Player.objects.get(user=self.user)
@@ -110,3 +118,36 @@ class TestGetNewProject(TestCase):
         player_project = Player.objects.get(user=self.user).project
 
         self.assertNotEqual(player_project, new_player.project)
+
+
+class TestGetProjectInfo(TestCase):
+
+    fixtures = ['projects', 'releases']
+
+    def test_returns_404_if_project_does_not_exist(self):
+        response = self.client.get(reverse(
+            'projects:project_info', kwargs={'proj_uuid':'1234'}
+        ))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_return_project_info_if_it_exists(self):
+        uuid = Project.objects.all()[0].uuid
+        response = self.client.get(reverse(
+            'projects:project_info', kwargs={'proj_uuid':uuid}
+        ))
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(content['name'])
+        self.assertTrue(content['description'])
+        self.assertTrue(content['quality'])
+        self.assertTrue(content['initial_cash'])
+        self.assertTrue(content['uuid'])
+        self.assertTrue(content['releases'])
+        self.assertTrue(content['releases'][0]['position'])
+        self.assertTrue(content['releases'][0]['payment'])
+        self.assertTrue(content['releases'][0]['component_1'])
+        self.assertTrue(content['releases'][0]['component_2'])
+        self.assertTrue(content['releases'][0]['component_3'])
+        self.assertTrue(content['releases'][0]['component_4'])

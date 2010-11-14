@@ -12,6 +12,15 @@ class Project(models.Model):
     initial_cash = models.IntegerField()
     uuid = models.CharField(max_length=36, blank=True)
 
+    def to_dict(self):
+        return {
+            'name':self.name,
+            'description':self.description,
+            'quality':self.quality,
+            'initial_cash':self.initial_cash,
+            'uuid':self.uuid,
+        }
+
 def __set_project_uuid(sender, **kwargs):
     project = kwargs['instance']
     if not project.pk:
@@ -28,3 +37,13 @@ class Release(models.Model):
     component_2 = models.IntegerField(null=True, blank=True)
     component_3 = models.IntegerField(null=True, blank=True)
     component_4 = models.IntegerField(null=True, blank=True)
+
+    def to_dict(self):
+        return {
+            'position':self.position,
+            'payment':self.payment,
+            'component_1':self.component_1,
+            'component_2':self.component_2,
+            'component_3':self.component_3,
+            'component_4':self.component_4,
+        }
