@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 import random
 
+from django.views.decorators.cache import never_cache
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,6 +12,7 @@ from project_management.models import Project
 
 
 @user_auth
+@never_cache
 def get_new_project(request, game_uuid):
     game = get_object_or_404(Game, uuid=game_uuid)
     player = get_object_or_404(Player, current_game=game, user=request.user)
