@@ -1,0 +1,1 @@
+[{"pk": 1, "model": "project_management.project", "fields": {"name": "projeto 1", "uuid": "edba08a6-5ddf-4e2e-ac62-512e558567ba"}}, {"pk": 2, "model": "project_management.project", "fields": {"name": "projeto 2", "uuid": "5788716d-412c-4e7b-a100-2a31355d1855"}}]
