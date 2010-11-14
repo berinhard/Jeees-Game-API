@@ -6,7 +6,10 @@ class TestProjectModel(TestCase):
 
     def setUp(self):
         self.params = {
-            'name':'projeto'
+            'name':'projeto',
+            'description':'site web',
+            'quality':10,
+            'initial_cash':100,
         }
 
     def test_creates_project_uuid(self):
