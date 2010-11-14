@@ -91,6 +91,7 @@ class GameCreationTests(TestCase):
         self.assertTrue(content['game'])
         self.assertTrue(content['delete_game_uri'])
         self.assertTrue(content['game_info_uri'])
+        self.assertTrue(content['get_project_uri'])
 
 
 class GameDeletionOrLeaveTests(TestCase):
@@ -233,6 +234,7 @@ class JoinGameTests(TestCase):
         self.assertTrue(content['game'])
         self.assertTrue(content['leave_game_uri'])
         self.assertTrue(content['game_info_uri'])
+        self.assertTrue(content['get_project_uri'])
 
 
 class GetGameInfoTests(TestCase):
