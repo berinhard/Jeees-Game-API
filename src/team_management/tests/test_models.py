@@ -7,10 +7,12 @@ class TestTeamModel(TestCase):
     def setUp(self):
         self.params = {
             'name':'team_test',
+            'description':'team description',
             'development_points':3,
             'testing_points':3,
+            'bug_hit':1/3,
             'salary':10,
-            'cost':1,
+            'contract_cost':1,
         }
 
     def test_creates_uuid_on_save(self):
