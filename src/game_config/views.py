@@ -34,6 +34,7 @@ def create_game(request):
         'game': game.to_dict(),
         'game_info_uri':'/game/%s/' % game.uuid,
         'delete_game_uri':'/game/%s/' % game.uuid,
+        'get_project_uri':'/project/new/%s' % game.uuid,
     }
     content = json.dumps(content)
 
@@ -68,6 +69,7 @@ def join_game(request, uuid):
         'game': game.to_dict(),
         'game_info_uri':'/game/%s/' % game.uuid,
         'leave_game_uri':'/game/%s/' % game.uuid,
+        'get_project_uri':'/project/new/%s' % game.uuid,
     }
     content = json.dumps(content)
 

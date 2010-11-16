@@ -5,6 +5,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_save
 
+from project_management.models import Project
+
 class Game(models.Model):
 
     name = models.CharField(max_length=20)
@@ -27,6 +29,8 @@ class Player(models.Model):
     user = models.OneToOneField(User)
     current_game = models.ForeignKey(Game)
     timestamp = models.DateTimeField(auto_now_add=True)
+    project = models.ForeignKey(Project, null=True, blank=True)
+    cash = models.IntegerField(default=0)
     uuid = models.CharField(max_length=32)
 
     def save(self, *args, **kwargs):
