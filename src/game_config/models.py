@@ -30,6 +30,7 @@ class Player(models.Model):
     current_game = models.ForeignKey(Game)
     timestamp = models.DateTimeField(auto_now_add=True)
     project = models.ForeignKey(Project, null=True, blank=True)
+    cash = models.IntegerField(default=0)
     uuid = models.CharField(max_length=32)
 
     def save(self, *args, **kwargs):
