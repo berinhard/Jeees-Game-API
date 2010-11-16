@@ -28,6 +28,7 @@ def get_new_project(request, game_uuid):
 
     project = random.choice(projects)
     player.project = project
+    player.cash = project.initial_cash
     player.save()
 
     content = json.dumps({'project_info_uri':'/project/info/%s' % project.uuid})

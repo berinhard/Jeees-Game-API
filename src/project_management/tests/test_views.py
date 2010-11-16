@@ -1,3 +1,4 @@
+# -*- encoding:utf-8 -*-
 import json
 
 from django.test import TestCase
@@ -118,6 +119,19 @@ class TestGetNewProject(TestCase):
         player_project = Player.objects.get(user=self.user).project
 
         self.assertNotEqual(player_project, new_player.project)
+
+    #teste de regressão
+    def test_player_cash_gets_updated(self):
+        player = Player.objects.get(user=self.user)
+        self.assertEqual(player.cash, 0)
+
+        response = self.client.get(
+            reverse('projects:get_project', kwargs={'game_uuid':self.game.uuid}),
+            HTTP_AUTHORIZATION = self.http_authorization
+        )
+
+        player = Player.objects.get(user=self.user)
+        self.assertEqual(player.cash, player.project.initial_cash)
 
 
 class TestGetProjectInfo(TestCase):
