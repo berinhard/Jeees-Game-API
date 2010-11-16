@@ -10,10 +10,10 @@ class Team(models.Model):
     description = models.TextField()
     development_points = models.IntegerField()
     testing_points = models.IntegerField()
-    bug_hit = models.DecimalField(max_digits=1, decimal_places=4)
+    bug_hit = models.DecimalField(max_digits=5, decimal_places=4)
     salary = models.IntegerField()
     contract_cost = models.IntegerField()
-    uuid = models.CharField(max_length=36)
+    uuid = models.CharField(max_length=36, blank=True)
 
 def __set_team_uuid_on_creation(sender, **kwargs):
     team = kwargs['instance']
