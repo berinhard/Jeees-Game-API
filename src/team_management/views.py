@@ -1,4 +1,6 @@
+# -*- encoding:utf-8 -*-
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 
 from game_config.decorators import user_auth
@@ -16,5 +18,8 @@ def buy_team(request, team_uuid):
     team = get_object_or_404(Team, uuid=team_uuid)
     game = get_object_or_404(Game, uuid=game_uuid)
     player = get_object_or_404(Player, user=request.user, current_game=game)
+
+    if player.cash < team.salary:
+        return HttpResponseForbidden('o jogador não tem dinheiro suficiente')
 
     return HttpResponse()

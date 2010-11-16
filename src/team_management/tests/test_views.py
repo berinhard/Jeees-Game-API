@@ -24,7 +24,7 @@ class BuyTeamTests(TestCase):
         )
         self.http_authorization = build_http_auth_header(self.user.username, password)
         self.game = Game.objects.create(name='test', creator=self.user)
-        player = Player.objects.create(user=self.user, current_game=self.game)
+        self.player = Player.objects.create(user=self.user, current_game=self.game)
         self.team = Team.objects.all()[0]
 
     def test_return_unauthorized_with_wrong_credentials(self):
@@ -113,3 +113,15 @@ class BuyTeamTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_return_forbidden_if_player_doesnt_have_enough_money(self):
+        self.player.cash = 0
+        self.player.save()
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+
+        self.assertEqual(response.status_code, 403)
