@@ -1,6 +1,9 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 
-from team_management.models import Team
+from team_management.models import Team, GameTeam
+from game_config.models import Game, Player
+
 
 class TestTeamModel(TestCase):
 
@@ -31,3 +34,26 @@ class TestTeamModel(TestCase):
         team.name = 'new name'
         team.save()
         self.assertEqual(uuid, team.uuid)
+
+
+class TestGameTeamModel(TestCase):
+
+    fixtures = ['teams']
+
+    def setUp(self):
+        user = User.objects.create()
+        game = Game.objects.create(name='test', creator=user)
+        player = Player.objects.create(user=user, current_game=game)
+        team = Team.objects.all()[0]
+        self.game_team = GameTeam.objects.create(team=team, player=player)
+
+    def test_game_salary_return_team_salary_if_was_bought_one_time(self):
+        self.game_team.times_bought = 1
+        self.game_team.save()
+        self.assertEqual(self.game_team.game_salary, self.game_team.team.salary)
+
+    def test_game_salary_return_team_salary_plus_contract_cost_if_was_bought_two_times(self):
+        self.game_team.times_bought = 2
+        self.game_team.save()
+        expected_salary = self.game_team.team.salary + 2 * self.game_team.team.contract_cost
+        self.assertEqual(self.game_team.game_salary, expected_salary)
