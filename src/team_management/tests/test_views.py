@@ -1,10 +1,12 @@
+from mock import Mock, patch
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
 from utils.test_helpers import build_http_auth_header
 from game_config.models import Game, Player
-from team_management.models import Team
+from team_management.models import Team, GameTeam
 
 __all__ = [
     'BuyTeamTests',
@@ -125,3 +127,110 @@ class BuyTeamTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_player_buy_team_if_has_enough_money(self):
+        self.player.cash = 1000
+        self.player.save()
+        self.assertFalse(GameTeam.objects.all())
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(GameTeam.objects.all())
+        game_team = GameTeam.objects.all()[0]
+        self.assertEqual(game_team.player, player)
+        self.assertEqual(player.cash, 1000 - game_team.team.salary)
+
+    def test_return_forbidden_buying_other_player_team_if_hasnt_enough_money(self):
+        cash = self.team.salary + 1
+        self.player.cash = cash
+        self.player.save()
+        new_user = User.objects.create()
+        new_player = Player.objects.create(user=new_user, current_game=self.game)
+        GameTeam.objects.create(player=new_player, team=self.team)
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(GameTeam.objects.count(), 1)
+        self.assertEqual(player.cash, cash)
+
+    def test_return_forbidden_buying_other_player_team_if_hasnt_enough_money_and_team_was_bought_more_than_one_time(self):
+        cash = self.team.salary + self.team.contract_cost + 1
+        self.player.cash = cash
+        self.player.save()
+        new_user = User.objects.create()
+        new_player = Player.objects.create(user=new_user, current_game=self.game)
+        game_team = GameTeam.objects.create(player=new_player, team=self.team)
+        game_team.times_bought = 2
+        game_team.save()
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(GameTeam.objects.count(), 1)
+        self.assertEqual(player.cash, cash)
+
+    @patch('random.choice', Mock(return_value=False))
+    def test_return_forbidden_buying_other_player_team_if_dice_doesnt_return_true(self):
+        cash = self.team.salary + self.team.contract_cost + 1
+        self.player.cash = cash
+        self.player.save()
+        new_user = User.objects.create()
+        new_player = Player.objects.create(user=new_user, current_game=self.game)
+        GameTeam.objects.create(player=new_player, team=self.team)
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(GameTeam.objects.count(), 1)
+        self.assertEqual(player.cash, cash)
+
+    @patch('random.choice', Mock(return_value=True))
+    def test_return_success_buying_other_player_team_if_dice_return_true(self):
+        cash = self.team.salary + self.team.contract_cost + 1
+        self.player.cash = cash
+        self.player.save()
+        new_user = User.objects.create()
+        new_player = Player.objects.create(user=new_user, current_game=self.game)
+        game_team = GameTeam.objects.create(player=new_player, team=self.team)
+        purchase_price = game_team.purchase_price
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(GameTeam.objects.count(), 1)
+        game_team = GameTeam.objects.all()[0]
+        self.assertEqual(game_team.player, player)
+        self.assertEqual(game_team.times_bought, 2)
+        self.assertEqual(player.cash, cash - purchase_price)
