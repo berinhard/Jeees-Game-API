@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 from team_management.models import Team, GameTeam
 from game_config.models import Game, Player
+from utils.test_helpers import JeeesGameAPITestCase
 
 
 class TestTeamModel(TestCase):
@@ -36,14 +37,13 @@ class TestTeamModel(TestCase):
         self.assertEqual(uuid, team.uuid)
 
 
-class TestGameTeamModel(TestCase):
+class TestGameTeamModel(JeeesGameAPITestCase):
 
     fixtures = ['teams']
 
     def setUp(self):
-        user = User.objects.create()
-        game = Game.objects.create(name='test', creator=user)
-        player = Player.objects.create(user=user, current_game=game)
+        user, password = self.create_django_user()
+        game, player = self.create_game_and_player(user)
         team = Team.objects.all()[0]
         self.game_team = GameTeam.objects.create(team=team, player=player)
 

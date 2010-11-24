@@ -1,10 +1,9 @@
 from mock import Mock, patch
 
-from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
-from utils.test_helpers import build_http_auth_header
+from utils.test_helpers import build_http_auth_header, JeeesGameAPITestCase
 from game_config.models import Game, Player
 from team_management.models import Team, GameTeam
 
@@ -13,21 +12,16 @@ __all__ = [
 ]
 
 
-class BuyTeamTests(TestCase):
+class BuyTeamTests(JeeesGameAPITestCase):
 
     fixtures = ['teams']
 
     def setUp(self):
-        password = 'password'
-        self.user = User.objects.create_user(
-            username='username',
-            password=password,
-            email='a@a.com'
-        )
-        self.http_authorization = build_http_auth_header(self.user.username, password)
-        self.game = Game.objects.create(name='test', creator=self.user)
-        self.player = Player.objects.create(user=self.user, current_game=self.game)
+        self.user, password = self.create_django_user()
+        self.game, self.player = self.create_game_and_player(self.user)
         self.team = Team.objects.all()[0]
+
+        self.http_authorization = build_http_auth_header(self.user.username, password)
 
     def test_return_unauthorized_with_wrong_credentials(self):
         http_authorization = build_http_auth_header(self.user.username, 'wrong')
@@ -80,12 +74,8 @@ class BuyTeamTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_return_404_if_user_has_no_player(self):
-        new_user = User.objects.create_user(
-            username='new_username',
-            password='password',
-            email='new_a@a.com'
-        )
-        http_authorization = build_http_auth_header('new_username', 'password')
+        new_user, password = self.create_django_user(username='new')
+        http_authorization = build_http_auth_header(new_user.username, password)
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
@@ -97,14 +87,9 @@ class BuyTeamTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_return_404_if_user_doesnt_belong_to_the_game(self):
-        new_user = User.objects.create_user(
-            username='new_username',
-            password='password',
-            email='new_a@a.com'
-        )
-        new_game = Game.objects.create(name='new game', creator=new_user)
-        Player.objects.create(user=new_user, current_game=new_game)
-        http_authorization = build_http_auth_header('new_username', 'password')
+        new_user, password = self.create_django_user(username='new')
+        game, player = self.create_game_and_player(new_user)
+        http_authorization = build_http_auth_header(new_user.username, password)
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
@@ -127,6 +112,12 @@ class BuyTeamTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def __new_player_and_game_team(self):
+        new_user, password = self.create_django_user(username='new')
+        new_player = Player.objects.create(user=new_user, current_game=self.game)
+        return GameTeam.objects.create(player=new_player, team=self.team)
+
 
     def test_player_buy_team_if_has_enough_money(self):
         self.player.cash = 1000
@@ -151,9 +142,7 @@ class BuyTeamTests(TestCase):
         cash = self.team.salary + 1
         self.player.cash = cash
         self.player.save()
-        new_user = User.objects.create()
-        new_player = Player.objects.create(user=new_user, current_game=self.game)
-        GameTeam.objects.create(player=new_player, team=self.team)
+        self.__new_player_and_game_team()
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
@@ -171,9 +160,7 @@ class BuyTeamTests(TestCase):
         cash = self.team.salary + self.team.contract_cost + 1
         self.player.cash = cash
         self.player.save()
-        new_user = User.objects.create()
-        new_player = Player.objects.create(user=new_user, current_game=self.game)
-        game_team = GameTeam.objects.create(player=new_player, team=self.team)
+        game_team = self.__new_player_and_game_team()
         game_team.times_bought = 2
         game_team.save()
 
@@ -194,9 +181,7 @@ class BuyTeamTests(TestCase):
         cash = self.team.salary + self.team.contract_cost + 1
         self.player.cash = cash
         self.player.save()
-        new_user = User.objects.create()
-        new_player = Player.objects.create(user=new_user, current_game=self.game)
-        GameTeam.objects.create(player=new_player, team=self.team)
+        self.__new_player_and_game_team()
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
@@ -215,9 +200,7 @@ class BuyTeamTests(TestCase):
         cash = self.team.salary + self.team.contract_cost + 1
         self.player.cash = cash
         self.player.save()
-        new_user = User.objects.create()
-        new_player = Player.objects.create(user=new_user, current_game=self.game)
-        game_team = GameTeam.objects.create(player=new_player, team=self.team)
+        game_team = self.__new_player_and_game_team()
         purchase_price = game_team.purchase_price
 
         response = self.client.post(
