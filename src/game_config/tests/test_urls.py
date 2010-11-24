@@ -5,22 +5,22 @@ from django.contrib.auth.models import User
 from game_config.models import Game
 
 __all__ = [
-    'GameCreationURLTests',
+    'GameRootTests',
     'GameInfoURLTests',
 ]
 
-class GameCreationURLTests(TestCase):
+class GameRootTests(TestCase):
 
     def test_post_does_not_return_405(self):
-        response = self.client.post(reverse('game_config:create_game'))
+        response = self.client.post(reverse('game_config:root'))
         self.assertNotEquals(response.status_code, 405)
 
-    def test_get_return_status_code_405(self):
-        response = self.client.get(reverse('game_config:create_game'))
-        self.assertEquals(response.status_code, 405)
+    def test_get_does_not_return_405(self):
+        response = self.client.get(reverse('game_config:root'))
+        self.assertNotEquals(response.status_code, 405)
 
     def test_delete_return_status_code_405(self):
-        response = self.client.delete(reverse('game_config:create_game'))
+        response = self.client.delete(reverse('game_config:root'))
         self.assertEquals(response.status_code, 405)
 
 class GameInfoURLTests(TestCase):

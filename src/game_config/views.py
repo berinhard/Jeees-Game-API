@@ -40,6 +40,9 @@ def create_game(request):
 
     return HttpResponse(content)
 
+def all_games(request):
+    return HttpResponse()
+
 @user_auth
 @never_cache
 def leave_or_delete_game(request, uuid):

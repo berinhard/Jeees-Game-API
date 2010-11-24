@@ -26,7 +26,7 @@ class GameCreationTests(TestCase):
     def test_return_unauthorized_with_wrong_credentials(self):
         http_authorization = build_http_auth_header(self.username, 'wrong')
         response = self.client.post(
-            reverse('game_config:create_game'),
+            reverse('game_config:root'),
             {'game_name':'name'},
             content_type='application/json',
             HTTP_AUTHORIZATION = http_authorization
@@ -39,7 +39,7 @@ class GameCreationTests(TestCase):
 
         http_authorization = build_http_auth_header(self.username, self.password)
         response = self.client.post(
-            reverse('game_config:create_game'),
+            reverse('game_config:root'),
             {"game_name":"name"},
             content_type='application/json',
             HTTP_AUTHORIZATION = http_authorization
@@ -54,7 +54,7 @@ class GameCreationTests(TestCase):
     def test_bad_request_with_corret_credentials_and_without_game_info(self):
         http_authorization = build_http_auth_header(self.username, self.password)
         response = self.client.post(
-            reverse('game_config:create_game'),
+            reverse('game_config:root'),
             {},
             content_type='application/json',
             HTTP_AUTHORIZATION = http_authorization
@@ -68,7 +68,7 @@ class GameCreationTests(TestCase):
 
         http_authorization = build_http_auth_header(self.username, self.password)
         response = self.client.post(
-            reverse('game_config:create_game'),
+            reverse('game_config:root'),
             {"game_name":"name"},
             content_type='application/json',
             HTTP_AUTHORIZATION = http_authorization
@@ -81,7 +81,7 @@ class GameCreationTests(TestCase):
     def test_succefull_response_returns_correct_content(self):
         http_authorization = build_http_auth_header(self.username, self.password)
         response = self.client.post(
-            reverse('game_config:create_game'),
+            reverse('game_config:root'),
             {"game_name":"name"},
             content_type='application/json',
             HTTP_AUTHORIZATION = http_authorization
