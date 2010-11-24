@@ -16,6 +16,11 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
     fixtures = ['teams']
 
+    def __new_player_and_game_team(self):
+        new_user, password = self.create_django_user(username='new')
+        new_player = Player.objects.create(user=new_user, current_game=self.game)
+        return GameTeam.objects.create(player=new_player, team=self.team)
+
     def setUp(self):
         self.user, password = self.create_django_user()
         self.game, self.player = self.create_game_and_player(self.user)
@@ -112,12 +117,6 @@ class BuyTeamTests(JeeesGameAPITestCase):
         )
 
         self.assertEqual(response.status_code, 403)
-
-    def __new_player_and_game_team(self):
-        new_user, password = self.create_django_user(username='new')
-        new_player = Player.objects.create(user=new_user, current_game=self.game)
-        return GameTeam.objects.create(player=new_player, team=self.team)
-
 
     def test_player_buy_team_if_has_enough_money(self):
         self.player.cash = 1000
