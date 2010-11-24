@@ -10,7 +10,6 @@ from project_management.models import Project
 class Game(models.Model):
 
     name = models.CharField(max_length=20)
-    timestamp = models.DateTimeField(auto_now_add=True)
     uuid = models.CharField(max_length=36)
     creator = models.OneToOneField(User)
 
@@ -28,7 +27,6 @@ class Player(models.Model):
 
     user = models.OneToOneField(User)
     current_game = models.ForeignKey(Game)
-    timestamp = models.DateTimeField(auto_now_add=True)
     project = models.ForeignKey(Project, null=True, blank=True)
     cash = models.IntegerField(default=0)
     uuid = models.CharField(max_length=32)
