@@ -40,8 +40,11 @@ def create_game(request):
 
     return HttpResponse(content)
 
+@never_cache
 def all_games(request):
-    return HttpResponse()
+    content = [__game_info_dict(game) for game in Game.objects.all()]
+    content = json.dumps(content)
+    return HttpResponse(content)
 
 @user_auth
 @never_cache
@@ -81,6 +84,10 @@ def join_game(request, uuid):
 @never_cache
 def game_info(request, uuid):
     game = get_object_or_404(Game, uuid=uuid)
+    content = json.dumps(__game_info_dict(game))
+    return HttpResponse(content)
+
+def __game_info_dict(game):
     players = [
         {'uuid':player.uuid, 'username':player.user.username}
         for player in Player.objects.filter(current_game=game)
@@ -90,6 +97,5 @@ def game_info(request, uuid):
         'game':game.to_dict(),
         'players':players,
     }
-    content = json.dumps(content)
 
-    return HttpResponse(content)
+    return content

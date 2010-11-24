@@ -11,6 +11,7 @@ __all__ = [
     'GameDeletionOrLeaveTests',
     'JoinGameTests',
     'GetGameInfoTests',
+    'AllGamesInfoTests',
 ]
 
 class GameCreationTests(JeeesGameAPITestCase):
@@ -87,6 +88,32 @@ class GameCreationTests(JeeesGameAPITestCase):
         self.assertTrue(content['delete_game_uri'])
         self.assertTrue(content['game_info_uri'])
         self.assertTrue(content['get_project_uri'])
+
+
+class AllGamesInfoTests(JeeesGameAPITestCase):
+
+    def setUp(self):
+        user, password = self.create_django_user(username='user1')
+        self.create_game_and_player(user, game_name='game_1')
+        user, password = self.create_django_user(username='user2')
+        self.create_game_and_player(user, game_name='game_2')
+
+    def test_return_all_games_info(self):
+        game_number = Game.objects.count()
+
+        response = self.client.get(
+            reverse('game_config:root')
+        )
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(len(content) > 1)
+        self.assertEqual(len(content), game_number)
+        self.assertTrue(content[0]['game'])
+        self.assertTrue(isinstance(content[0]['players'], list))
+        self.assertTrue(content[0]['players'])
+        self.assertTrue(content[0]['players'][0]['uuid'])
+        self.assertTrue(content[0]['players'][0]['username'])
 
 
 class GameDeletionOrLeaveTests(JeeesGameAPITestCase):
