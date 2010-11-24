@@ -7,27 +7,21 @@ from django.core.urlresolvers import reverse
 
 from game_config.models import Game, Player
 from project_management.models import Project
-from utils.test_helpers import build_http_auth_header
+from utils.test_helpers import build_http_auth_header, JeeesGameAPITestCase
 
 __all__ = [
     'TestGetNewProject',
     'TestGetProjectInfo',
 ]
 
-class TestGetNewProject(TestCase):
+class TestGetNewProject(JeeesGameAPITestCase):
 
     fixtures = ['projects']
 
     def setUp(self):
-        password = 'password'
-        self.user = User.objects.create_user(
-            username='username',
-            password=password,
-            email='a@a.com'
-        )
+        self.user, password = self.create_django_user()
         self.http_authorization = build_http_auth_header(self.user.username, password)
-        self.game = Game.objects.create(name='test', creator=self.user)
-        player = Player.objects.create(user=self.user, current_game=self.game)
+        self.game, player = self.create_game_and_player(self.user)
 
     def test_return_unauthorized_with_wrong_credentials(self):
         http_authorization = build_http_auth_header(self.user.username, 'wrong')
@@ -47,12 +41,8 @@ class TestGetNewProject(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_return_404_if_user_has_no_player(self):
-        new_user = User.objects.create_user(
-            username='new_username',
-            password='password',
-            email='new_a@a.com'
-        )
-        http_authorization = build_http_auth_header('new_username', 'password')
+        new_user, password = self.create_django_user(username='new')
+        http_authorization = build_http_auth_header(new_user.username, password)
 
         response = self.client.get(
             reverse('projects:get_project', kwargs={'game_uuid':self.game.uuid}),
@@ -61,14 +51,9 @@ class TestGetNewProject(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_return_404_if_user_doesnt_belong_to_the_game(self):
-        new_user = User.objects.create_user(
-            username='new_username',
-            password='password',
-            email='new_a@a.com'
-        )
-        new_game = Game.objects.create(name='new game', creator=new_user)
-        Player.objects.create(user=new_user, current_game=new_game)
-        http_authorization = build_http_auth_header('new_username', 'password')
+        new_user, password = self.create_django_user(username='new')
+        game, player = self.create_game_and_player(new_user, game_name='new_game')
+        http_authorization = build_http_auth_header(new_user.username, password)
 
         response = self.client.get(
             reverse('projects:get_project', kwargs={'game_uuid':self.game.uuid}),
@@ -103,11 +88,7 @@ class TestGetNewProject(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_cant_repeat_same_project_for_more_than_one_player(self):
-        new_user = User.objects.create_user(
-            username='new_username',
-            password='password',
-            email='new_a@a.com'
-        )
+        new_user, password = self.create_django_user(username='new')
         new_player = Player.objects.create(user=new_user, current_game=self.game)
         new_player.project = Project.objects.get(id=1)
         new_player.save()

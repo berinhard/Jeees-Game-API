@@ -1,20 +1,13 @@
-from django.test import TestCase
-from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse
 
 from game_config.decorators import user_auth
-from utils.test_helpers import build_http_auth_header
+from utils.test_helpers import build_http_auth_header, JeeesGameAPITestCase
 
-class TestUserAuthDecorator(TestCase):
+class TestUserAuthDecorator(JeeesGameAPITestCase):
 
     def setUp(self):
-        self.username = 'username'
-        self.password = 'password'
-        User.objects.create_user(
-            username=self.username,
-            email='a@a.com',
-            password=self.password
-        )
+        user, self.password = self.create_django_user()
+        self.username = user.username
 
     def test_auth_with_correct_credentials(self):
         http_auth = build_http_auth_header(self.username, self.password)
