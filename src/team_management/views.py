@@ -4,6 +4,7 @@ import random
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
+from django.views.decorators.cache import never_cache
 
 from game_config.decorators import user_auth
 from game_config.models import Game, Player
@@ -12,6 +13,7 @@ from team_management.models import Team, GameTeam
 
 @user_auth
 @unpack_data
+@never_cache
 def buy_team(request, team_uuid):
     if not 'game_uuid' in request.post_data:
         return HttpResponseBadRequest('faltando o uuid do jogo no JSON')
@@ -37,7 +39,6 @@ def buy_team(request, team_uuid):
 
     return HttpResponse()
 
-
 def __team_first_purchase(team, player):
     if player.cash < team.salary:
         return HttpResponseForbidden('o jogador não tem dinheiro suficiente'), 0
@@ -59,3 +60,6 @@ def __buy_oponent_team(game_team, player):
     game_team.save()
 
     return HttpResponse, purchase_price
+
+def team_info(request, team_uuid):
+    return HttpResponse()

@@ -12,3 +12,9 @@ class SingleTeamURLTests(TestCase):
             reverse('teams:single_team', kwargs={'team_uuid':'1234'})
         )
         self.assertNotEqual(response.status_code, 405)
+
+    def test_get_does_not_return_405(self):
+        response = self.client.get(
+            reverse('teams:single_team', kwargs={'team_uuid':'1234'})
+        )
+        self.assertNotEqual(response.status_code, 405)
