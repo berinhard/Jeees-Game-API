@@ -17,6 +17,18 @@ class Team(models.Model):
     contract_cost = models.IntegerField()
     uuid = models.CharField(max_length=36, blank=True)
 
+    def to_dict(self):
+        team = {
+            'name':self.name,
+            'description':self.description,
+            'development_points':self.development_points,
+            'testing_points':self.testing_points,
+            'bug_hit':str(self.bug_hit),
+            'salary':self.salary,
+            'contract_cost':self.contract_cost,
+        }
+        return team
+
 def __set_team_uuid_on_creation(sender, **kwargs):
     team = kwargs['instance']
     if not team.pk:

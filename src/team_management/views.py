@@ -1,5 +1,6 @@
 # -*- encoding:utf-8 -*-
 import random
+import json
 
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.http import HttpResponseForbidden
@@ -61,5 +62,9 @@ def __buy_oponent_team(game_team, player):
 
     return HttpResponse, purchase_price
 
+@never_cache
 def team_info(request, team_uuid):
-    return HttpResponse()
+    team = get_object_or_404(Team, uuid=team_uuid)
+    content = team.to_dict()
+    content = json.dumps(content)
+    return HttpResponse(content)

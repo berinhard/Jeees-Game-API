@@ -1,4 +1,5 @@
 from mock import Mock, patch
+import json
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -9,6 +10,7 @@ from team_management.models import Team, GameTeam
 
 __all__ = [
     'BuyTeamTests',
+    'TeamInfoTest',
 ]
 
 
@@ -216,3 +218,26 @@ class BuyTeamTests(JeeesGameAPITestCase):
         self.assertEqual(game_team.player, player)
         self.assertEqual(game_team.times_bought, 2)
         self.assertEqual(player.cash, cash - purchase_price)
+
+
+class TeamInfoTest(JeeesGameAPITestCase):
+
+    fixtures = ['teams']
+
+    def test_return_404_if_team_does_not_exist(self):
+        response = self.client.get(
+            reverse('teams:single_team', kwargs={'team_uuid':'1234'})
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_display_team_info(self):
+        team = Team.objects.all()[0]
+
+        response = self.client.get(
+            reverse('teams:single_team', kwargs={'team_uuid':team.uuid})
+        )
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(content)
