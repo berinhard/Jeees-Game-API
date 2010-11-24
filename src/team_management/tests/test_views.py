@@ -11,6 +11,7 @@ from team_management.models import Team, GameTeam
 __all__ = [
     'BuyTeamTests',
     'TeamInfoTest',
+    'ListAllTeamsTest',
 ]
 
 
@@ -241,3 +242,17 @@ class TeamInfoTest(JeeesGameAPITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(content)
+
+
+class ListAllTeamsTest(JeeesGameAPITestCase):
+
+    fixtures = ['teams']
+
+    def test_shows_all_teams(self):
+        teams_count = Team.objects.count()
+
+        response = self.client.get(reverse('teams:root'))
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(content), teams_count)

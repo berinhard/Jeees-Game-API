@@ -68,3 +68,9 @@ def team_info(request, team_uuid):
     content = team.to_dict()
     content = json.dumps(content)
     return HttpResponse(content)
+
+@never_cache
+def all_teams(request):
+    content = [team.to_dict() for team in Team.objects.all()]
+    content = json.dumps(content)
+    return HttpResponse(content)
