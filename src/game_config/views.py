@@ -94,6 +94,7 @@ def __game_info_dict(game):
     ]
 
     content = {
+        'game_info_uri':'/game/%s/' % game.uuid,
         'game':game.to_dict(),
         'players':players,
     }
