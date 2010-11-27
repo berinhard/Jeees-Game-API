@@ -66,7 +66,9 @@ def __buy_oponent_team(game_team, player):
     return HttpResponse(content), purchase_price
 
 @never_cache
-def team_info(request, team_uuid):
+def team_info(request, team_uuid, game_uuid=None):
+    if game_uuid:
+        team = get_object_or_404(GameTeam, player__current_game__uuid=game_uuid)
     team = get_object_or_404(Team, uuid=team_uuid)
     content = team.to_dict()
     content = json.dumps(content)

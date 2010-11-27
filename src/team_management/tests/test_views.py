@@ -264,6 +264,12 @@ class TeamInfoTest(JeeesGameAPITestCase):
 
     fixtures = ['teams']
 
+    def setUp(self):
+        self.user, password = self.create_django_user()
+        self.game, self.player = self.create_game_and_player(self.user)
+
+        self.http_authorization = build_http_auth_header(self.user.username, password)
+
     def test_return_404_if_team_does_not_exist(self):
         response = self.client.get(
             reverse('teams:single_team', kwargs={'team_uuid':'1234'})
@@ -281,6 +287,36 @@ class TeamInfoTest(JeeesGameAPITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(content)
+
+    def test_return_404_if_game_team_game_does_not_exist(self):
+        team = Team.objects.all()[0]
+
+        response = self.client.get(
+            reverse('teams:game_team_info', kwargs={'team_uuid':team.uuid, 'game_uuid':1234})
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_return_404_if_game_team_does_not_exist(self):
+        team = Team.objects.all()[0]
+
+        response = self.client.get(
+            reverse('teams:game_team_info', kwargs={'team_uuid':team.uuid, 'game_uuid':self.game.uuid})
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_return_correct_team_salary_if_team_was_bought(self):
+        team = Team.objects.all()[0]
+        game_team = GameTeam.objects.create(player=self.player, team=team)
+
+        response = self.client.get(
+            reverse('teams:game_team_info', kwargs={'team_uuid':team.uuid, 'game_uuid':self.game.uuid})
+        )
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content['salary'], game_team.game_salary)
 
 
 class ListAllTeamsTest(JeeesGameAPITestCase):
