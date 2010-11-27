@@ -51,3 +51,11 @@ class GameTeam(models.Model):
             return self.purchase_price
         else:
             return self.team.salary
+
+    def to_dict(self):
+        player_game_dict = self.team.to_dict()
+        player_game_dict.update({
+            'salary':self.game_salary,
+            'owner':self.player.user.username,
+        })
+        return player_game_dict

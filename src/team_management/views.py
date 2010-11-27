@@ -38,14 +38,16 @@ def buy_team(request, team_uuid):
     player.cash -= cost
     player.save()
 
-    return HttpResponse()
+    return response
 
 def __team_first_purchase(team, player):
     if player.cash < team.salary:
         return HttpResponseForbidden('o jogador não tem dinheiro suficiente'), 0
 
-    GameTeam.objects.create(player=player, team=team)
-    return HttpResponse(), team.salary
+    game_team = GameTeam.objects.create(player=player, team=team)
+    content = json.dumps(game_team.to_dict())
+
+    return HttpResponse(content), team.salary
 
 def __buy_oponent_team(game_team, player):
     purchase_price = game_team.purchase_price
@@ -59,8 +61,9 @@ def __buy_oponent_team(game_team, player):
     game_team.player = player
     game_team.times_bought += 1
     game_team.save()
+    content = json.dumps(game_team.to_dict())
 
-    return HttpResponse, purchase_price
+    return HttpResponse(content), purchase_price
 
 @never_cache
 def team_info(request, team_uuid):

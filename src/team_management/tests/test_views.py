@@ -220,6 +220,45 @@ class BuyTeamTests(JeeesGameAPITestCase):
         self.assertEqual(game_team.times_bought, 2)
         self.assertEqual(player.cash, cash - purchase_price)
 
+    def test_player_buy_team_for_the_first_time_and_has_correct_content(self):
+        self.player.cash = 1000
+        self.player.save()
+        self.assertFalse(GameTeam.objects.all())
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+        content = json.loads(response.content)
+        game_team = GameTeam.objects.all()[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content['salary'], game_team.game_salary)
+
+    @patch('random.choice', Mock(return_value=True))
+    def test_return_player_buy_opponent_team_and_has_correct_content(self):
+        cash = self.team.salary + self.team.contract_cost + 1
+        self.player.cash = cash
+        self.player.save()
+        game_team = self.__new_player_and_game_team()
+        purchase_price = game_team.purchase_price
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+        content = json.loads(response.content)
+        game_team = GameTeam.objects.all()[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(content['salary'], game_team.game_salary)
+
 
 class TeamInfoTest(JeeesGameAPITestCase):
 
