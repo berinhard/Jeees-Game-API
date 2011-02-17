@@ -31,11 +31,6 @@ def buy_team(request, team_uuid):
     else:
         return __team_first_purchase(team, player)
 
-    if response.status_code != 200:
-        return response
-
-    return response
-
 def __team_first_purchase(team, player):
     if player.cash < team.salary:
         return HttpResponseForbidden('o jogador não tem dinheiro suficiente')
