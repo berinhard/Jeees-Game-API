@@ -21,21 +21,31 @@ def buy_team(request, team_uuid):
     player = request.player
 
     team = get_object_or_404(Team, uuid=team_uuid)
-
     oponent_game_team = GameTeam.objects.filter(
         team=team, player__current_game=game).exclude(player=player)
 
+    try:
+        development = request.post_data['development'].upper()
+        if development == 'FALSE':
+            development = False
+        elif development == 'TRUE':
+            development=True
+        else:
+            raise Exception
+    except:
+        return HttpResponseBadRequest('O campo development está faltando ou está mal formatado no JSON')
+
     if oponent_game_team:
         game_team = oponent_game_team[0]
-        return __buy_oponent_team(game_team, player)
+        return __buy_oponent_team(game_team, player, development)
     else:
-        return __team_first_purchase(team, player)
+        return __team_first_purchase(team, player, development)
 
-def __team_first_purchase(team, player):
+def __team_first_purchase(team, player, development):
     if player.cash < team.salary:
         return HttpResponseForbidden('o jogador não tem dinheiro suficiente')
 
-    game_team = GameTeam.objects.create(player=player, team=team)
+    game_team = GameTeam.objects.create(player=player, team=team, development=development)
     content = json.dumps(game_team.to_dict())
 
     player.cash -= team.salary
@@ -43,7 +53,7 @@ def __team_first_purchase(team, player):
 
     return HttpResponse(content)
 
-def __buy_oponent_team(game_team, player):
+def __buy_oponent_team(game_team, player, development):
     purchase_price = game_team.purchase_price
     if player.cash < purchase_price:
         return HttpResponseForbidden('o jogador não tem dinheiro suficiente')
@@ -54,6 +64,7 @@ def __buy_oponent_team(game_team, player):
 
     game_team.player = player
     game_team.times_bought += 1
+    game_team.development = development
     game_team.save()
     content = json.dumps(game_team.to_dict())
 

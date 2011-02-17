@@ -71,6 +71,16 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_return_bad_request_with_missing_development_field(self):
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
     def test_return_404_if_game_does_not_exist(self):
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
@@ -114,21 +124,21 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
-            {'game_uuid':self.game.uuid},
+            {'game_uuid':self.game.uuid, 'development':'true'},
             content_type='application/json',
             HTTP_AUTHORIZATION = self.http_authorization,
         )
 
         self.assertEqual(response.status_code, 403)
 
-    def test_player_buy_team_if_has_enough_money(self):
+    def test_player_buy_team_if_has_enough_money_for_develpment(self):
         self.player.cash = 1000
         self.player.save()
         self.assertFalse(GameTeam.objects.all())
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
-            {'game_uuid':self.game.uuid},
+            {'game_uuid':self.game.uuid, 'development':'true'},
             content_type='application/json',
             HTTP_AUTHORIZATION = self.http_authorization,
         )
@@ -138,6 +148,27 @@ class BuyTeamTests(JeeesGameAPITestCase):
         self.assertTrue(GameTeam.objects.all())
         game_team = GameTeam.objects.all()[0]
         self.assertEqual(game_team.player, player)
+        self.assertEqual(game_team.development, True)
+        self.assertEqual(player.cash, 1000 - game_team.team.salary)
+
+    def test_player_buy_team_if_has_enough_money_for_testing(self):
+        self.player.cash = 1000
+        self.player.save()
+        self.assertFalse(GameTeam.objects.all())
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid, 'development':'false'},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(GameTeam.objects.all())
+        game_team = GameTeam.objects.all()[0]
+        self.assertEqual(game_team.player, player)
+        self.assertEqual(game_team.development, False)
         self.assertEqual(player.cash, 1000 - game_team.team.salary)
 
     def test_return_forbidden_buying_other_player_team_if_hasnt_enough_money(self):
@@ -148,7 +179,7 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
-            {'game_uuid':self.game.uuid},
+            {'game_uuid':self.game.uuid, 'development':'true'},
             content_type='application/json',
             HTTP_AUTHORIZATION = self.http_authorization,
         )
@@ -168,7 +199,7 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
-            {'game_uuid':self.game.uuid},
+            {'game_uuid':self.game.uuid, 'development':'true'},
             content_type='application/json',
             HTTP_AUTHORIZATION = self.http_authorization,
         )
@@ -187,7 +218,7 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
-            {'game_uuid':self.game.uuid},
+            {'game_uuid':self.game.uuid, 'development':'true'},
             content_type='application/json',
             HTTP_AUTHORIZATION = self.http_authorization,
         )
@@ -198,7 +229,7 @@ class BuyTeamTests(JeeesGameAPITestCase):
         self.assertEqual(player.cash, cash)
 
     @patch('random.choice', Mock(return_value=True))
-    def test_return_success_buying_other_player_team_if_dice_return_true(self):
+    def test_return_success_buying_other_player_team_for_development_if_dice_return_true(self):
         cash = self.team.salary + self.team.contract_cost + 1
         self.player.cash = cash
         self.player.save()
@@ -207,7 +238,31 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
-            {'game_uuid':self.game.uuid},
+            {'game_uuid':self.game.uuid, 'development':'true'},
+            content_type='application/json',
+            HTTP_AUTHORIZATION = self.http_authorization,
+        )
+        player = Player.objects.get(user=self.user)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(GameTeam.objects.count(), 1)
+        game_team = GameTeam.objects.all()[0]
+        self.assertEqual(game_team.player, player)
+        self.assertEqual(game_team.development, True)
+        self.assertEqual(game_team.times_bought, 2)
+        self.assertEqual(player.cash, cash - purchase_price)
+
+    @patch('random.choice', Mock(return_value=True))
+    def test_return_success_buying_other_player_team_for_testing_if_dice_return_true(self):
+        cash = self.team.salary + self.team.contract_cost + 1
+        self.player.cash = cash
+        self.player.save()
+        game_team = self.__new_player_and_game_team()
+        purchase_price = game_team.purchase_price
+
+        response = self.client.post(
+            reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
+            {'game_uuid':self.game.uuid, 'development':'false'},
             content_type='application/json',
             HTTP_AUTHORIZATION = self.http_authorization,
         )
@@ -218,6 +273,7 @@ class BuyTeamTests(JeeesGameAPITestCase):
         game_team = GameTeam.objects.all()[0]
         self.assertEqual(game_team.player, player)
         self.assertEqual(game_team.times_bought, 2)
+        self.assertEqual(game_team.development, False)
         self.assertEqual(player.cash, cash - purchase_price)
 
     def test_player_buy_team_for_the_first_time_and_has_correct_content(self):
@@ -227,7 +283,7 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
-            {'game_uuid':self.game.uuid},
+            {'game_uuid':self.game.uuid, 'development':'true'},
             content_type='application/json',
             HTTP_AUTHORIZATION = self.http_authorization,
         )
@@ -248,7 +304,7 @@ class BuyTeamTests(JeeesGameAPITestCase):
 
         response = self.client.post(
             reverse('teams:single_team', kwargs={'team_uuid':self.team.uuid}),
-            {'game_uuid':self.game.uuid},
+            {'game_uuid':self.game.uuid, 'development':'true'},
             content_type='application/json',
             HTTP_AUTHORIZATION = self.http_authorization,
         )
