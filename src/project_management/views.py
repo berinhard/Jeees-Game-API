@@ -3,11 +3,12 @@ import random
 import json
 
 from django.views.decorators.cache import never_cache
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 
 from game_config.decorators import user_auth
 from game_config.models import Game, Player
+from team_management.models import GameTeam
 from project_management.models import Project
 
 
@@ -42,4 +43,31 @@ def get_info(request, proj_uuid):
     content.update({'releases':
         [release.to_dict() for release in project.release_set.all()]
     })
+    return HttpResponse(json.dumps(content))
+
+@user_auth
+def work_pontuation(request, game_uuid):
+    game = get_object_or_404(Game, uuid=game_uuid)
+    player = get_object_or_404(Player, current_game=game, user=request.user)
+
+    teams = [t for t in GameTeam.objects.all() if t.player == player]
+    if not teams:
+        return HttpResponseBadRequest('O jogador não possui time ainda')
+
+    development_points = 0
+    testing_points = 0
+
+    for team in teams:
+        if team.development:
+            for i in range(team.team.development_points):
+                development_points += random.randint(1, 6)
+        else:
+            for i in range(team.team.testing_points):
+                testing_points += random.randint(1, 6)
+
+    content = {
+        'development_points':development_points,
+        'testing_points':testing_points,
+    }
+
     return HttpResponse(json.dumps(content))

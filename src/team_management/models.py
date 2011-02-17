@@ -40,6 +40,7 @@ class GameTeam(models.Model):
     team = models.ForeignKey(Team)
     player = models.ForeignKey(Player)
     times_bought = models.IntegerField(default=1)
+    development = models.BooleanField(default=True)
 
     @property
     def purchase_price(self):
