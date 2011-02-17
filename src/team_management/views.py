@@ -29,41 +29,45 @@ def buy_team(request, team_uuid):
 
     if oponent_game_team:
         game_team = oponent_game_team[0]
-        response, cost = __buy_oponent_team(game_team, player)
+        return __buy_oponent_team(game_team, player)
     else:
-        response, cost = __team_first_purchase(team, player)
+        return __team_first_purchase(team, player)
 
     if response.status_code != 200:
         return response
-    player.cash -= cost
-    player.save()
 
     return response
 
 def __team_first_purchase(team, player):
     if player.cash < team.salary:
-        return HttpResponseForbidden('o jogador não tem dinheiro suficiente'), 0
+        return HttpResponseForbidden('o jogador não tem dinheiro suficiente')
 
     game_team = GameTeam.objects.create(player=player, team=team)
     content = json.dumps(game_team.to_dict())
 
-    return HttpResponse(content), team.salary
+    player.cash -= team.salary
+    player.save()
+
+    return HttpResponse(content)
 
 def __buy_oponent_team(game_team, player):
     purchase_price = game_team.purchase_price
     if player.cash < purchase_price:
-        return HttpResponseForbidden('o jogador não tem dinheiro suficiente'), 0
+        return HttpResponseForbidden('o jogador não tem dinheiro suficiente')
 
     success = random.choice([True, False])
     if not success:
-        return HttpResponseForbidden('não teve sorte ao tentar comprar'), 0
+        return HttpResponseForbidden('não teve sorte ao tentar comprar')
 
     game_team.player = player
     game_team.times_bought += 1
     game_team.save()
     content = json.dumps(game_team.to_dict())
 
-    return HttpResponse(content), purchase_price
+    player.cash -= purchase_price
+    player.save()
+
+    return HttpResponse(content)
 
 @never_cache
 def team_info(request, team_uuid, game_uuid=None):
