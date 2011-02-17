@@ -1,7 +1,10 @@
 # -*- encoding:utf-8 -*-
 from django.contrib.auth import authenticate
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404
+
+from game_config.models import Game, Player
 
 def user_auth(view):
     '''
@@ -24,7 +27,6 @@ def user_auth(view):
 
     return f
 
-
 def __get_header_authorization(request):
     username = None
     password = None
@@ -37,3 +39,21 @@ def __get_header_authorization(request):
 
     return username, password
 
+def get_player_and_game(view):
+
+    def f(request, *args, **kwargs):
+        try:
+            game_uuid = kwargs['game_uuid']
+        except KeyError:
+            if not 'game_uuid' in request.post_data:
+                return HttpResponseBadRequest('faltando o uuid do jogo no JSON')
+            game_uuid = request.post_data['game_uuid']
+
+        game = get_object_or_404(Game, uuid=game_uuid)
+        player = get_object_or_404(Player, current_game=game, user=request.user)
+        request.game = game
+        request.player = player
+
+        return view(request, *args, **kwargs)
+
+    return f

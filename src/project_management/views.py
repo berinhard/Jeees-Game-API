@@ -6,7 +6,7 @@ from django.views.decorators.cache import never_cache
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 
-from game_config.decorators import user_auth
+from game_config.decorators import user_auth, get_player_and_game
 from game_config.models import Game, Player
 from team_management.models import GameTeam
 from project_management.models import Project
@@ -14,9 +14,11 @@ from project_management.models import Project
 
 @user_auth
 @never_cache
+@get_player_and_game
 def get_new_project(request, game_uuid):
-    game = get_object_or_404(Game, uuid=game_uuid)
-    player = get_object_or_404(Player, current_game=game, user=request.user)
+    game = request.game
+    player = request.player
+
     if player.project:
         return HttpResponseForbidden('o jogador já tem um projeto')
 
@@ -45,10 +47,12 @@ def get_info(request, proj_uuid):
     })
     return HttpResponse(json.dumps(content))
 
+@never_cache
 @user_auth
+@get_player_and_game
 def work_pontuation(request, game_uuid):
-    game = get_object_or_404(Game, uuid=game_uuid)
-    player = get_object_or_404(Player, current_game=game, user=request.user)
+    game = request.game
+    player = request.player
 
     teams = [t for t in GameTeam.objects.all() if t.player == player]
     if not teams:
